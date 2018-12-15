@@ -5,6 +5,9 @@ import (
 	"strings"
 	"flag"
 	"net/http"
+	"os"
+	"math"
+	"bytes"
 )
 
 /*
@@ -95,7 +98,15 @@ func Test(){
 	BiBao1()
 	BiBao2()
 	BiBao3()
+
+	//13。可变参数
+	testJoinStrings()
+	testPrintTypeValue()
+	testPrint()
 }
+
+
+//***********5.1声明函数*************************************************
 //1。同一返回值类型
 func test1()(int,int){
 	return 1,2
@@ -151,11 +162,17 @@ func passByValue(inFunc Data) Data{
 	return inFunc//将传入的变量作为返回值返回
 }
 
+
+
+//***********5.2函数变量--把函数作为值保存到变量中*************************************
 //6。函数变量，把函数作为值保存到变量中
 func fire(){
 	fmt.Println("fire")
 }
 
+
+
+//***********5.3字符串的链式处理--操作与数据分离的设计技巧*************************************
 //7。字符串的链式处理--操作与数据分离的设计技巧
 /*
 链式处理：对数据的操作进行多步骤处理称为链式处理
@@ -213,6 +230,9 @@ func stringDealFlow(){
 	}
 }
 
+
+
+//***********5.4匿名函数--没有函数名字的函数**********************************************
 //8.匿名函数--没有函数名字的函数
 /*
 匿名函数没有函数名，只有函数体。函数可以被作为一种类型被赋值给函数类型的变量。
@@ -277,6 +297,9 @@ func NoNameFuncSeal(){
 	}
 }
 
+
+
+//***********5.5函数类型实现接口--把函数作为接口来调用**********************************************
 //11。函数类型实现接口--把函数作为接口来调用
 //(1)函数实现接口
 //调用器接口
@@ -341,6 +364,10 @@ func(f HandlerFunc) ServeHTTP(w http.ResponseWriter,r *http.Request){
 
 //(3)使用闭包实现默认的Http请求处理,可使用http.HandleFunc()函数
 
+
+
+
+//***********5.6闭包（Closure）--引用了外部变量的匿名函数**********************************************
 //13.闭包（Closure）--引用了外部变量的匿名函数
 /*
 闭包是引用了自由变量的函数，被引用的自由变量和函数一同存在，即使已经离开了自由变量的环境也不会被释放或删除。
@@ -415,3 +442,114 @@ func BiBao3(){
 
 }
 
+
+
+//***********5.7可变参数--参数数量不固定的函数形式**********************************************
+//14.可变参数--参数数量不固定的函数形式
+/*
+可变参数格式：
+func 函数名(固定参数列表,v ... T)(返回参数列表){
+   函数体
+ }
+说明：
+（1）可变参数一般被放置在函数列表的末尾。前面是固定参数列表，当没有固定参数时，所有变量都是可变参数
+（2）v为可变参数变量，类型为[]T，即拥有多个T元素的T类型切片。v和T间由...组成
+（3）T为可变参数的类型，当T为interface{}时，传入的可以是任意类型
+*/
+//fmt包中的例子
+//(1)所有参数都是可变参数:fmt.Println函数声明如下
+func Println(a ...interface{}) (n int,err error){
+	return fmt.Fprintln(os.Stdout,a...)
+}
+func KeBianParam(){
+	//fmt.Println在使用时，传入的值类型不受限制
+	fmt.Println(5,"hello",&struct {
+		a int
+	}{1},true)
+
+	//fmt.Printf
+	fmt.Printf("value:%v %f\n",true,math.Pi)
+}
+//(2)部分参数是可变参数：fmt.Printf
+func Printf(format string,a ...interface{})(n int,err error){
+	return fmt.Fprintf(os.Stdout,format,a...)
+}
+//(3)遍历可变参数列表--获取每一个参数的值
+//定义一个函数，参数数量为0-n，类型约束为字符串
+func joinStrings(slist ...string)string{//slist类型为[]string
+    fmt.Println(len(slist)) //获取可变参数长度 3 / 2
+	//定义一个字节缓冲，快速地连接字符串
+	var b bytes.Buffer //bytes.Buffer<=>StringBuilder,可高效进行字符串连接操作
+	//遍历可变参数列表slist ，类型为[]string
+	for _,s:=range slist{
+		//将遍历出的字符串连续写入字节数组
+		b.WriteString(s)
+	}
+	//将连接好的字节数组转换为字符串并输出
+	return b.String()
+}
+func testJoinStrings(){
+	fmt.Println(joinStrings("kaixin","yufeng","fighting"))//kaixinyufengfighting
+	fmt.Println(joinStrings("hello","go"))//hellogo
+}
+//(4)获得可变参数类型--获得每一个参数的类型
+/*
+当可变参数为interface{}类型时，可传入任何类型的值
+*/
+func printTypeValue(slist ...interface{}) string{
+	//字节缓冲作为快速字符串连接
+	var b bytes.Buffer
+	//遍历参数
+	for _,s:=range slist {
+		//将interface{}类型格式化为字符串
+		str := fmt.Sprintf("%v", s)//%v动词，可将interface{}格式的任意值转为字符串
+		//类型的字符串描述
+		var typeString string
+		//对s进行类型断言
+		switch s.(type) {
+		case bool:
+			typeString = "bool"
+		case string:
+			typeString = "string"
+		case int:
+			typeString = "int"
+		}
+		//写入字符串前缀
+		b.WriteString("value:")
+		//写入值
+		b.WriteString(str)
+		//写类型前缀
+		b.WriteString("type:")
+		//写类型字符串
+		b.WriteString(typeString)
+		//换行
+		b.WriteString("\n")
+	}
+	return b.String()
+}
+func testPrintTypeValue(){
+	fmt.Println(printTypeValue(100,"str",true))
+}
+
+//(5)在多个可变参数函数中传递参数
+//示例：可变参数传递
+//实际打印的函数
+func rawPrint(rawList ...interface{}){
+	//遍历可变参数切片
+	for _,a:=range rawList{
+		//打印参数
+		fmt.Println(a)
+	}
+}
+//打印函数封装
+func print(slist ...interface{}){
+	//将slist可变参数切片完整传递给下一个函数
+	rawPrint(slist...)//在多个可变参数中传递需要加... 输出：1 2 3
+	rawPrint("fmt",slist) //[1 2 3],此时slist将作为一个整体传入rawPrint
+	/*
+	注：可变参数使用...进行传递 与  切片间使用append连接是同一个特性
+	*/
+}
+func testPrint()  {
+	print(1,2,3)
+}
