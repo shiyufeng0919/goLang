@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"flag"
+	"net/http"
 )
 
 /*
@@ -83,6 +84,17 @@ func Test(){
 	命令行测试：go run main.go --skill=fly
 	*/
 	NoNameFuncSeal()
+
+	//11。函数类型实现接口--把函数作为接口来调用
+	//结构体实现接口
+	execFunc()
+	//函数体实现接口
+	execFuncCaller()
+
+	//12。闭包
+	BiBao1()
+	BiBao2()
+	BiBao3()
 }
 //1。同一返回值类型
 func test1()(int,int){
@@ -264,3 +276,142 @@ func NoNameFuncSeal(){
 		fmt.Println("skill not found")
 	}
 }
+
+//11。函数类型实现接口--把函数作为接口来调用
+//(1)函数实现接口
+//调用器接口
+type Invoker interface { //接口
+	Call(interface{}) //需要实现一个call方法,调用时会传入一个interface{}类型的变量，这种类型的变量表示任意类型的值
+}
+//****(2)结构体实现接口
+//结构体类型
+type Struct struct{
+}
+//实现Invoker的Call
+//Call为结构体的方法
+func (s *Struct) Call(p interface{}){ //实现类
+	fmt.Println("from struct",p)
+}
+
+//声明接口变量
+var invoker Invoker //声明Invoker类型（接口类型）的变量
+func execFunc(){
+	//实例化结构体
+	s:=new(Struct) //new()将结构体实例化，也可写成: s:=&Struct
+	//将实例化的结构体赋值到接口
+	invoker=s //s类型为*Struct，在上述已经实现了Invoker接口类型，因此可以赋值给invoker
+	//使用接口调用实例化结构体的方法Struct.Call
+	invoker.Call("kaixinyufeng") //调用结构体的Call方法,结果：from struct kaixinyufeng
+}
+
+//****(3)函数体实现接口
+/*
+函数的声明不能直接实现接口，需要将函数定义为类型后，使用类型实现结构体。
+当类型方法被调用时，还需要调用函数本体
+*/
+//函数定义为类型
+type FuncCaller func(interface{}) //将func(interface{})定义为FuncCaller类型
+//实现Invoker的Call
+func(f FuncCaller) Call(p interface{}){ //FuncCaller的Call方法将实现Invoker的Call()方法
+	//调用f()函数本体
+	f(p)
+}
+//声明接口变量
+var invoker2 Invoker
+func execFuncCaller(){
+	//将匿名函数转为FuncCaller类型，再赋值给接口
+	invoker2=FuncCaller(func(v interface{}){ //匿名函数func(v interface{}转换为FuncCaller类型，因上述FuncCaller类型实现了Invoker的Call方法，此处赋值成功
+		fmt.Println("from function",v)
+	})
+	//使用接口调用FuncCaller.Call。内部会调用函数本体
+	invoker2.Call("hello") //from function hello
+}
+
+//12.HTTP包中的例子
+//(1)Http包中含有Handler接口定义,Handler用于定义每个Http请求和响应的处理过程
+type Handler interface {
+	ServeHttp(ResponseWriter,r *http.Request)
+}
+
+//(2)使用处理函数实现接口
+type HandlerFunc func(w http.ResponseWriter,r *http.Request)
+func(f HandlerFunc) ServeHTTP(w http.ResponseWriter,r *http.Request){
+	f(w,r)
+}
+
+//(3)使用闭包实现默认的Http请求处理,可使用http.HandleFunc()函数
+
+//13.闭包（Closure）--引用了外部变量的匿名函数
+/*
+闭包是引用了自由变量的函数，被引用的自由变量和函数一同存在，即使已经离开了自由变量的环境也不会被释放或删除。
+在闭包中可继续使用这个自由变量。
+即：函数+引用环境=闭包 //函数是编译期静态概念，而闭包是运行期动态概念
+*/
+//(1)在闭包内部修改引用的变量
+func BiBao1(){
+	//准备一个字符串,目的：用于修改
+	str:="kaixin yufeng"
+	//创建一个匿名函数
+	foo:= func() {
+		//匿名函数中访问str,str在匿名函数中并没有定义(在匿名函数前定义)，str被引用到了匿名函数中形成了闭包
+		str="hello yufeng"
+	}
+	//调用匿名函数
+	foo() //执行闭包，str发生修改
+	fmt.Println("str:",str) //str: hello yufeng
+}
+
+//(2)闭包的记忆效应
+/*
+被捕获到闭包中的变量让闭包本身拥有了记忆效应。
+闭包中的逻辑可以修改闭包捕获的变量，变量会跟随闭包生命期一直存在
+闭包本身就如同变量一样拥有了记忆效应
+*/
+func BiBao2(){
+	//创建一个累加器，初始值为1
+	accumulator:=accumulate(1)
+	//累加1并打印
+	fmt.Println(accumulator)
+	fmt.Println(accumulator)
+	//打印累加器的函数地址
+	fmt.Printf("%p\n",accumulator)
+	//创建一个累加器，初始值为1
+	accumulator2:=accumulate(10)
+	fmt.Println(accumulator2)
+	fmt.Printf("%p\n",accumulator2)
+}
+//提供一个值，每次调用函数会指定对值进行累加
+func accumulate(value int) func() {
+	//返回一个闭包
+	//return func() int{
+	//	//累加
+	//	value++
+	//	return value
+	//}
+	return func() {
+		value++
+	}
+}
+
+//(3)示例：闭包实现生成器
+/*
+闭包的记忆效应进程被用于实现类似于设计模式中工厂模式的生成器
+*/
+//创建玩家生成器
+func playerGen(name string) func()(string,int){
+	hp:=50 //血量一直为50
+	//返回创建的闭包
+	return func() (string, int) {
+		//将变量引用到闭包中
+		return name,hp //此匿名函数中未声明name和hp，直接引用外部.将hp和name变量引用到匿名函数中形成闭包
+	}
+}
+func BiBao3(){
+	//创建一个玩家生成器
+	generator:=playerGen("highnoon")
+	//返回玩家的血量和名字
+	name,hp:=generator()
+	fmt.Println(name,hp)//highnoon 50
+
+}
+
