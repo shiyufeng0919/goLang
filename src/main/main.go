@@ -27,7 +27,9 @@ func main() {
 	//basicGrammer.Break() //break
 	//basicGrammer.Continue() //continue
 
-	basicGrammer.Test()
+	//basicGrammer.Test()
+
+	basicGrammer.DeferDemo()
 
 
 
