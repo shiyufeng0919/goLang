@@ -5,6 +5,7 @@ import (
 	"sync"
 	"os"
 	"errors"
+	"runtime"
 )
 
 /*
@@ -168,5 +169,87 @@ func ErrorDemo(){
 	}
 }
 
+
+
+//############3.宕机(panic)--程序终止运行
+//(3-1)手动触发宕机
+/*
+GO在宕机时，会将堆栈和gorountine信息输出到控制台
+*/
+func panicDemo(){
+	panic("crash") //触发宕机,参数类型可为任意类型
+}
+//(3-2)在运行依赖的必备资源缺失时主动触发宕机
+/*
+regexp：是GO语言正则表达式，编译后才能使用
+*/
+//(3-3)在宕机时触发延迟执行语句
+func panicDeferDemo(){
+	defer fmt.Println("panic后do1") //执行
+	defer fmt.Println("panic后do2") //执行
+	panic("宕机") //panic宕机后后面代码不执行，但前面已经运行过的defer会执行
+}
+
+//############4.宕机恢复
+/*
+说明：无论代码运行错误由Runtime层抛出的panic崩溃，还是主动触发的panic崩溃。
+都可以配合defer和recover实现错误捕捉和恢复。让代码在发生崩溃后允许继续执行。
+panic等价于抛出异常，recover等价于try/catch
+
+panic和recover关系：
+A.有panic没recover，程序宕机
+B.有panic也有recover捕获，程序不会宕机。执行完对应defer后，从宕机点退出当前函数后继续执行。
+*/
+//声明描述错误的结构体，成员保存错误的执行函数
+type panicContext struct {
+	function string
+}
+//保护方式允许一个函数
+func ProjectRun(entry func()){
+	//延迟处理函数
+	defer func() { //defer将闭包延迟执行
+		//发生宕机时获取panic传递的上下文并打印
+		err:=recover()
+		switch err.(type) { //对错误类型进行断言
+		case runtime.Error:
+			//运行时错误
+			fmt.Println("runtime error:",err)
+		default:
+			//非运行时错误
+			fmt.Println("error:",err)
+		}
+	}()
+	entry()
+}
+func PanicDemo(){
+	fmt.Println("运行前")
+	//允许一段手动触发的错误
+	ProjectRun(func() {
+		fmt.Println("手动宕机前")
+		//使用panic传递上下文
+		panic(&panicContext{
+			"手动触发panic",
+		})
+		fmt.Println("手动宕机后")
+	})
+
+	//故意造成空指针访问错误
+	ProjectRun(func() {
+		fmt.Println("赋值宕机前")
+		var a *int
+		*a=1 //模拟代码中空指针赋值造成错误，会Runtime层抛出错误被ProjectRun函数的recover()函数捕获
+		fmt.Println("赋值宕机后")
+	})
+	fmt.Println("运行后")
+	/*
+	执行结果：
+		运行前
+		手动宕机前
+		error: &{手动触发panic}
+		赋值宕机前
+		runtime error: runtime error: invalid memory address or nil pointer dereference
+		运行后
+	*/
+}
 
 

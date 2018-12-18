@@ -29,7 +29,8 @@ func main() {
 
 	//basicGrammer.Test()
 
-	basicGrammer.DeferDemo()
+	//basicGrammer.DeferDemo()
+	basicGrammer.PanicDemo()
 
 
 
