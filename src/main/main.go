@@ -30,7 +30,9 @@ func main() {
 	//basicGrammer.Test()
 
 	//basicGrammer.DeferDemo()
-	basicGrammer.PanicDemo()
+	//basicGrammer.PanicDemo()
+
+	basicGrammer.StructPartI()
 
 
 
