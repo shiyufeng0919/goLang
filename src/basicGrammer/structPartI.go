@@ -242,3 +242,45 @@ func StructPartI(){
 
 
 //6.4构造函数--结构体和类型的一系列初始化操作的函数封装
+/*
+GO语言的类型或结构体没有构造函数的功能
+结构体的初始化过程可以使用函数封装实现。
+*/
+//6.4.1多种方式创建和初始化结构体--模拟构造函数重载
+type Cat struct{
+	Color string
+	Name string
+}
+func newCatByName(name string) *Cat{
+	//取地址实例化猫的结构体
+	return &Cat{
+		Name:name,
+	}
+}
+func newCatByColor(color string) *Cat{
+	return &Cat{
+		Color:color,
+	}
+}
+
+//6.4.2 带有父子关系的结构体的构造和初始化--模拟父级构造调用
+/*
+GO语言中没有提供构造函数相关的特殊机制，用户根据自己需求，将参数使用函数传递到结构体构造参数中
+即可完成构造函数的任务。
+*/
+type BlackCat struct {
+	Cat //嵌入Cat，类似于派生,拥有Cat的所有成员，实例化后可访问Cat的所有成员
+}
+//构造基类
+//newCat函数定义了Cat的构造过程
+func newCat(name string) *Cat{
+	return &Cat{
+		Name:name,
+	}
+}
+//构造子类
+func newBlackCat(color string) *BlackCat{
+	cat:=&BlackCat{} //实例化BlackCat结构，此时Cat也同时被实例化
+	cat.Color=color
+	return cat
+}
