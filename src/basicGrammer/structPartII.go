@@ -3,6 +3,11 @@ package basicGrammer
 import (
 	"fmt"
 	"math"
+	"net/http"
+	"strings"
+	"os"
+	"io/ioutil"
+	"time"
 )
 
 /*
@@ -163,3 +168,160 @@ func (v Vec2) normalize() Vec2{
 }
 
 //2.实现玩家对象
+type Player struct {
+	currPos Vec2 //当前位置
+	targetpos Vec2 //目标位置
+	speed float32 //移动速度
+}
+//设置玩家移动的目标位置
+func (p *Player) moveTo(v Vec2)  {
+	p.targetpos=v
+}
+//获取当前位置
+func (p *Player) pos() Vec2{
+	return p.currPos
+}
+//判断是否到达目的地
+func (p *Player) isArrived() bool{
+	//通过计算当前玩家位置与目标位置的距离不超过移动的步长，判断已经到达目标点
+	return p.currPos.distanceTo(p.targetpos) < p.speed
+}
+//更新玩家位置
+func (p *Player) update(){
+	if !p.isArrived(){
+		//计算出当前位置指向目标的朝向
+		dir:=p.targetpos.sub(p.currPos).normalize()
+		//添加速度矢量生成新的位置
+		newPos:=p.currPos.add(dir.scale(p.speed))
+		//移动完成后，更新当前位置
+		p.currPos=newPos
+	}
+}
+//创建新玩家
+func newPlayer(speed float32) *Player{
+	return &Player{
+		speed:speed,
+	}
+}
+
+//3.处理移动逻辑
+func methodDemo5(){
+	//实例化玩家对象，并设速度为0.5
+	p:=newPlayer(0.5)
+	//让玩家移动到3,1点
+	p.moveTo(Vec2{3,1})
+	//如果没有到达就一直循环
+	for !p.isArrived(){
+		//更新玩家位置
+		p.update()
+		//打印每次移动后的玩家位置
+		fmt.Println(p.pos())
+	}
+}
+
+/*
+6.5.4为类型添加方法
+
+GO语言可为任何类型添加方法
+*/
+/*
+1。基本类型添加方法
+*/
+//将int定义为myInt类型
+type myInt int
+//为myInt类型添加方法isZero()
+func (m myInt) isZero() bool{
+	return m==0
+}
+//为myInt添加add()方法 (非指针接收器)
+func (m myInt) add(other int) int{
+	return other+int(m)
+}
+func methodDemo6(){
+	var b myInt
+	fmt.Println(b.isZero()) //true
+	b=1
+	fmt.Println(b.add(2)) //3
+}
+
+/*
+2.http包中的类型方法
+*/
+func methodDemo7(){
+	//实例化http客户端,请求需要通过该client实例发送
+	client:=&http.Client{}
+	//创建一个http请求 strings.NewReader创建一个字符串读取器
+	//仅构造一个请求对象，不会连接网络
+	req,err:=http.NewRequest("POST","http://www.163.com",strings.NewReader("key=value"))
+   //发现错误打印并退出
+	if err !=nil{
+		fmt.Println(err)
+		os.Exit(1)
+		return
+	}
+	//为标头添加信息
+	req.Header.Add("User-Agent","my Client")
+	//开始请求
+	resp,err:=client.Do(req)//client将http请求发送到服务器,服务器响应后将信息返回并保存到resp中
+	//处理请求错误
+	if err !=nil{
+		fmt.Println(err)
+		os.Exit(1)
+		return
+	}
+	//读取服务器返回的内容
+	data,err:=ioutil.ReadAll(resp.Body)//读取响应的body部分并打印
+	fmt.Println(string(data))
+	defer resp.Body.Close()
+}
+
+/*
+3.time包中的类型方法
+
+time包用于时间的获取和计算
+*/
+func methodDemo8(){
+	//time.Second是一个常量
+	//Second的类型是Duration,Duration实际是一个int64类型
+	//Duration.String可将Duration的值转为字符串
+	fmt.Println(time.Second.String())
+}
+
+
+/*
+6.5.5 示例：使用事件系统实现事件的响应和处理
+*/
+/*
+1.方法和函数的统一调用
+
+下述例子：结构体和普通函数参数/签名完全一致
+然后用与它们签名一致的函数变量分别赋值方法与函数
+则该函数变量可以保存普通函数/结构体方法
+*/
+//声明一个结构体
+type class struct {
+}
+//给结构体添加Do方法
+func (c *class) do(v int){
+	fmt.Println("call method do:",v)
+}
+//普通函数的do()方法
+func funcDo(v int){
+	fmt.Println("call function do:",v)
+}
+func methodDemo9(){
+	//声明一个函数回调
+	var delegate func(int)
+	//创建结构体实例
+	c:=new(class)
+	//将回调设为c的do方法
+	delegate=c.do
+	//调用
+	delegate(100) //call method do:100
+	//将回调设为普通函数
+	delegate=funcDo
+	delegate(100) //call function do:100
+}
+/*
+2.事件系统基本原理
+*/
