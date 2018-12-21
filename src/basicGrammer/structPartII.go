@@ -324,4 +324,80 @@ func methodDemo9(){
 }
 /*
 2.事件系统基本原理
+事件系统可将事件派发者与事件处理者解耦
+事件调用      事件响应代码
+      <--注册---
+      --调用---->
 */
+
+/*
+3.事件注册
+
+事件注册的过程就是将事件名称和响应函数关联并保存起来
+*/
+//实例化一个通过字符串映射函数切片的map
+var eventByName=make(map[string][]func(interface{}))//通过事件名string关联回调列表func(interface{})
+//注册事件，提供事件名和回调函数
+func RegisterEvent(name string,callback func(interface{})){
+	//通过名字查找事件列表
+	list:=eventByName[name]
+	//在列表切片中添加函数
+	list=append(list,callback)
+	//保存修改的事件列表切片
+	eventByName[name]=list
+}
+
+/*
+4.事件调用
+
+事件调用方和注册方是事件处理中完全不同的两个角色
+*/
+//调用事件  name:提供事件名字，param：事件参数表示描述事件具体的细节
+func callEvent(name string,param interface{}){
+	//通过名字找到事件列表
+	list:=eventByName[name]
+	//遍历这个事件的所有回调
+	for _,callback:=range list{
+		//传入参数调用回调
+		callback(param)//触发事件实现方的逻辑处理
+	}
+}
+
+
+/*
+5.使用事件系统
+将事发现场和事件处理方联系起来
+*/
+//声明角色的结构体
+type Actor struct {
+
+}
+//为角色添加一个事件处理函数
+func (a *Actor) onEvent(param interface{}){
+	fmt.Println("actor event:",param)
+}
+
+//全局事件
+func globalEvent(param interface{}){
+	fmt.Println("global event:",param)
+}
+func methodDemo10(){
+	//实例化一个角色
+	a:=new(Actor)
+	//注册名为onSkill回调
+	RegisterEvent("onSkill",a.onEvent)
+	//再次在onSkill上注册全局事件
+	RegisterEvent("onSkill",globalEvent)
+	//调用事件，所有注册的同名函数都会被调用
+	callEvent("onSkill",100)
+	/*
+	执行结果：（角色和全局的事件会按注册顺序顺序地触发，事件系统认为所有函数都是平等的）
+	actor event: 100
+	global event: 100
+	*/
+}
+
+func StructPartII(){
+	methodDemo10()
+}
+

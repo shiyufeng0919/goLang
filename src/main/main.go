@@ -32,7 +32,13 @@ func main() {
 	//basicGrammer.DeferDemo()
 	//basicGrammer.PanicDemo()
 
-	basicGrammer.StructPartI()
+	//basicGrammer.StructPartI()
+	//basicGrammer.StructPartII()
+	//basicGrammer.StructDemo12()
+	//basicGrammer.StructDemo13()
+	//basicGrammer.StructDemo15()
+	//basicGrammer.StructDemo16()
+	basicGrammer.StructDemo17()
 
 
 
