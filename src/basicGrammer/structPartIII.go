@@ -1,9 +1,12 @@
 package basicGrammer
 
-import "fmt"
+import (
+	"fmt"
+	"encoding/json"
+)
 
 /*
-6.6 类型内嵌和结构体内嵌
+6.6 类型内嵌和结构体内嵌 & 分离json数据
 
 结构体允许其成员字段在声明时没有字段名而只有类型。这种形式字段被称为类型内嵌或匿名字段
 */
@@ -197,4 +200,73 @@ func StructDemo17(){
 	c.a.a=1 //可正常输出
 	//c.a=1 //报错，编译器不知赋给a中的a还是b中的a
 	fmt.Println(c) //&{{1} {0}}
+}
+
+/*
+6.7 示例：使用匿名结构体分离JSON数据
+*/
+/*
+1。定义数据结构
+注意必须大写，否则Marshal的数据为{}
+*/
+//定义手机屏幕
+type Screen struct {
+	Size float32 //屏幕尺寸
+	Resx,Resy int //屏幕小平和垂直分辨率
+}
+//定义电池
+type Battery struct {
+	Capcacity int //容量
+}
+//准备json数据
+func genJsonData() []byte{
+	//完整数据结构
+	raw:=&struct {
+		Screen
+		Battery
+		HashTouchId bool //序列化时添加的字段，是否有指纹识别
+	}{
+		//屏幕参数
+		Screen:Screen{
+			Size:5.5,
+			Resx:1920,
+			Resy:1080,
+		},
+		//电池参数
+		Battery:Battery{
+			2910,
+		},
+		//是否有指纹识别
+		HashTouchId:true,
+	}
+	//将数据序列化为json
+	jsonData,err:=json.Marshal(raw)
+	if err !=nil{
+		return nil
+	}
+	fmt.Println("jsonData:",string(jsonData))//jsonData: {"Size":5.5,"Resx":1920,"Resy":1080,"Capcacity":2910,"HashTouchId":true}
+	return jsonData
+}
+//分离json数据
+func StructDemo18(){
+	//生成一段json数据
+	jsonData :=genJsonData()
+	fmt.Println(string(jsonData))//{"Size":5.5,"Resx":1920,"Resy":1080,"Capcacity":2910,"HashTouchId":true}
+	//只需要屏幕和指纹识别信息的结构和实例
+	screenAndTouch:= struct {
+		Screen
+		HasTouchId bool
+	}{}
+	//反序列化到screenAndTouch
+	json.Unmarshal(jsonData,&screenAndTouch)
+	//只需要电池和指纹识别信息的结构和实例
+	batteryAndTouch:= struct {
+		Battery
+		HasTouchId bool
+	}{}
+	//反序列化到batteryAndTouch
+	json.Unmarshal(jsonData,batteryAndTouch)
+	//输出batteryAndTouch详细信息
+	fmt.Printf("%+v\n",batteryAndTouch)//{Battery:{Capcacity:0} HasTouchId:false}
+
 }

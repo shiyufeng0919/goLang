@@ -127,18 +127,20 @@ ins:=结构体类型名{
   ...
 }
 */
+//eg:爸爸的爸爸是爷爷
+/*注：结构体名称及成员名称首字母必须大写，否则为{}*/
+type People struct {
+	Name string
+	Child *People //结构体的结构体指针字段，类型是*People
+}
 func initStructDemo1(){
-	//eg:爸爸的爸爸是爷爷
-	type People struct {
-		name string
-		child *People //结构体的结构体指针字段，类型是*People
-	}
+
 	relation:=&People{  //relation为*People的实例
-		name:"爷爷",
-		child:&People{ //child在初始化时需要*People的值，使用取地址初始化一个People
-			name:"爸爸",
-			child:&People{
-				name:"我",
+		Name:"爷爷",
+		Child:&People{ //child在初始化时需要*People的值，使用取地址初始化一个People
+			Name:"爸爸",
+			Child:&People{
+				Name:"我",
 			},
 		},
 	}
@@ -146,8 +148,7 @@ func initStructDemo1(){
 	if err !=nil{
 		fmt.Println(err)
 	}
-	fmt.Println(jsonData)
-
+	fmt.Println(string(jsonData)) //{"Name":"爷爷","Child":{"Name":"爸爸","Child":{"Name":"我","Child":null}}}
 }
 
 
@@ -234,13 +235,6 @@ func noNameStructDemo(){
 	printMsgType(msg)
 }
 
-func StructPartI(){
-	initStructDemo1()
-	initStructDemo2() //{heilongijang haerbin 101 0}
-	noNameStructDemo()
-}
-
-
 //6.4构造函数--结构体和类型的一系列初始化操作的函数封装
 /*
 GO语言的类型或结构体没有构造函数的功能
@@ -283,4 +277,12 @@ func newBlackCat(color string) *BlackCat{
 	cat:=&BlackCat{} //实例化BlackCat结构，此时Cat也同时被实例化
 	cat.Color=color
 	return cat
+}
+
+
+
+func StructPartI(){
+	initStructDemo1()
+	initStructDemo2() //{heilongijang haerbin 101 0}
+	noNameStructDemo()
 }
