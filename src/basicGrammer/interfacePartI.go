@@ -3,6 +3,8 @@ package basicGrammer
 import (
 	"fmt"
 	"io"
+	"os"
+	"errors"
 )
 
 /*
@@ -182,4 +184,100 @@ func (l *logger) Log(data interface{}){
 //创建日志器的实例
 func NewLogger() *logger{
 	return &logger{}
+}
+
+/*
+2。文件写入器
+
+文件写入器的功能是根据一个文件名创建日志文件
+*/
+//声明文件写入器
+type fileWriter struct {
+	file *os.File
+}
+//设置文件写入器写入的文件名
+func (f *fileWriter) setFile(filename string)(err error){
+	//如果文件已经打开，关闭前一个文件
+	if f.file!=nil{
+		f.file.Close()//关闭文件，避免文件再次访问无法读取，无法写入错误
+	}
+	//创建一个文件并保存文件句柄
+	f.file,err=os.Create(filename)
+	//如果创建的过程出现错误，则返回错误
+	return err
+}
+//实现LogWriter的Write方法
+func (f *fileWriter) Write(data interface{}) error{
+	//日志文件可能没有创建成功
+	if f.file==nil{
+		//日志文件没有准备好
+		return errors.New("file not created")
+	}
+	//将数据序列化为字符串
+	str:=fmt.Sprintf("%v\n",data) //%v动词，将data按其本来的值转换为字符串
+	//将数据以字节数组写入文件中
+	_,err:=f.file.Write([]byte(str)) //将str字符串转换为[]byte，再写入到文件中
+	return err
+}
+//创建文件写入器实例
+func newFileWriter() *fileWriter{
+	return &fileWriter{}
+}
+
+/*
+3.命令行写入器
+
+命令行在GO中也是一种文件
+*/
+/*
+示例：将命令行抽象为志写入器
+*/
+//命令行写入器
+type consoleWriter struct {}
+//实现LogWriter的Write方法
+func (f *consoleWriter) Write(data interface{}) error{
+	//将数据序列化为字符串
+	str:=fmt.Sprintf("%v\n",data)
+	//将数据以字节数组写入命令行中
+	_,err:=os.Stdout.Write([]byte(str))
+	return err
+}
+//创建命令行写入器实例
+func newConsoleWriter() *consoleWriter{
+	return &consoleWriter{}
+}
+
+/*
+除命令行写入器和文件写入器。还可使用net包中的Socket封装实现网络写入器sockerWriter
+让日志可以写入远程服务器中，或可跨进程进行日志保存和分析
+*/
+
+/*
+4.使用日志
+在程序中使用日志器一般会先通过代码创建日志器(logger)，为日志器添加输出设备(fileWriter/consoleWriter等)
+*/
+//创建日志器
+func createLogger() *Logger{
+	//创建日志器
+	l:=NewLogger()
+	//创建命令行写入器
+	cw:=newConsoleWriter()
+	//注册命令行写入器到日志器中
+	l.RegisterWriter(cw)
+	//创建文件写入器
+	fw:=newFileWriter()
+	//设置文件名
+	if err:=fw.setFile("log.log");err!=nil{
+		fmt.Println(err)
+	}
+	//注册文件写入器到日志器中
+	l.RegisterWriter(fw)
+	//return l
+	return nil
+}
+func InterfaceDemo4(){
+	//准备日志器
+	l:=createLogger()
+	//写一个日志
+	l.Log("hello")
 }
