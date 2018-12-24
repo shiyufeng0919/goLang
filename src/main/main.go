@@ -3,5 +3,5 @@ package main
 import "golandProject/goLang/src/basicGrammer"
 
 func main() {
-basicGrammer.InterfaceDemo9()
+basicGrammer.InterfaceDemo12()
 }
