@@ -3,6 +3,8 @@ package basicGrammer
 import (
 	"io"
 	"fmt"
+	"reflect"
+	"errors"
 )
 
 /*
@@ -381,4 +383,173 @@ func DemoPrintType2(){
 
 有限状态机(Finite-State Machine,FSM)：
 表示有限个状态及在这些状态间的转移和动作等行为的数学模型
+*/
+/*
+1.状态的概念
+
+状态机中的状态与状态间能够自由转换
+例：人从站立 -》 卧倒
+*/
+/*
+2。自定义状态需要实现的接口
+*/
+//状态接口,此接口用于状态管理器内部保存和外部实现
+type State interface {
+	//获取状态名字
+	Name() string
+	//该状态是否允许同状态转移
+	EnableSameTransit() bool //用于实现是否允许本状态间的互相转换
+	//响应状态开始时
+	OnBegin()
+	//响应状态结束时
+	OnEnd()
+	//判断能否转移到某个状态
+	CanTransitTo(name string) bool
+}
+//从状态实例获取状态名
+func StateName(s State) string{
+	if s==nil{
+		return "none"
+	}
+	//使用反射获取状态的名称
+	return reflect.TypeOf(s).Elem().Name()
+}
+
+/*
+3.状态的基本信息
+*/
+//状态的基础信息和默认实现
+type StateInfo struct {
+	//状态名
+	name string
+}
+//状态名
+func (s *StateInfo) Name() string{
+	return s.name
+}
+//提供给内部设置名字
+func (s *StateInfo) setName(name string){ //setName首字母小写，只能被同包内调用
+	s.name=name
+}
+//允许同状态转移
+func (s *StateInfo) EnableSameTransit() bool{
+	return false
+}
+//默认将状态开启时实现
+func (s *StateInfo) OnBegin(){
+
+}
+//默认将状态结束时实现
+func (s *StateInfo) OnEnd(){
+
+}
+//默认可以转移到任何状态
+func (s *StateInfo) CanTransitTo(name string) bool{
+	return true
+}
+
+/*
+4.状态管理
+*/
+//状态管理器
+type StateManager struct {
+	//已经添加的状态
+	stateByName map[string]State
+	//状态改变时的回调
+	OnChange func(from,to State)
+	//当前状态
+	curr State
+}
+//添加一个状态到管理器中
+func(sm *StateManager) Add(s State){
+	//获取状态的名字
+	name:=StateName(s)
+	//将s转换为能设置名字的接口，然后调用该接口
+	s.(interface{ //将s(state)接口通过类型断言转换为带有setName()方法(name string)的接口，接着调用这个接口的setName方法设置状态名称
+		setName(name string)
+	}).setName(name)
+	//根据状态名获取已经添加的状态，检查该状态是否存在
+	if sm.Get(name) != nil{
+		panic("duplicate state:"+name)
+	}
+	//根据名字保存到map中
+	sm.stateByName[name]=s
+}
+//根据名字获取指定状态
+func (sm *StateManager) Get(name string) State{
+	if v,ok:=sm.stateByName[name];ok{
+		return v
+	}
+	return nil
+}
+//初始化状态管理器
+func NewStateManager() *StateManager{
+	return &StateManager{
+		stateByName:make(map[string]State),
+	}
+}
+
+/*
+5。在状态间转移
+
+状态管理器不仅管理状态的实例，还可控制当前的状态及转移到的新的状态
+*/
+//状态没有找到的错误
+var ErrStateNotFound=errors.New("state not found")
+//禁止在同状态间转移
+var ErrForbidSameStateTransit=errors.New("forbid same state transit")
+//不能转移到指定状态
+var ErrCannotTransitToState=errors.New("cannot transit to state")
+//获取当前的状态
+func (sm *StateManager) CurrState() State{
+	return sm.curr
+}
+//当前状态能否转移到目标状态
+func (sm *StateManager) CanCurrTransitTo(name string) bool{
+	if sm.curr !=nil{
+		return true
+	}
+	//相同状态不用转换
+	if sm.curr.Name() ==name && !sm.curr.EnableSameTransit(){
+		return false
+	}
+	//使用当前状态，检查能否转移到指定名字的状态
+	return sm.curr.CanTransitTo(name)
+}
+//转移到指定状态
+func (sm *StateManager) Transit(name string ) error{
+	//获取目标状态
+	next:=sm.Get(name)
+	//目标不存在
+	if next ==nil{
+		return ErrStateNotFound
+	}
+	//记录转移前的状态
+	pre:=sm.curr
+	//当前有状态
+	if sm.curr !=nil{
+		//相同的状态不用转换
+		if sm.curr.Name()==name && !sm.curr.EnableSameTransit(){
+			return ErrForbidSameStateTransit
+		}
+		//不能转移到目标状态
+		if !sm.curr.CanTransitTo(name){
+			return ErrCannotTransitToState
+		}
+		//结束当前状态
+		sm.curr.OnEnd()
+	}
+	//将当前状态转换为要转移到的目标状态
+	sm.curr=next
+	//调用新状态的开始
+	sm.curr.OnBegin()
+	//通知回调
+	if sm.OnChange != nil{
+		sm.OnChange(pre,sm.curr)
+	}
+	return nil
+}
+
+/*
+6.自定义状态实现状态接口
 */
