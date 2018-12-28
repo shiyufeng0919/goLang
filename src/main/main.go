@@ -3,7 +3,7 @@ package main
 import "golandProject/goLang/src/basicGrammer"
 
 func main() {
-basicGrammer.DemoPrintType2()
+  basicGrammer.StateManagerDemo() //状态机
 }
 
 
