@@ -1,9 +1,9 @@
 package main
 
-import "golandProject/goLang/src/basicGrammer"
+import "golandProject/goLang/src/basicGrammer/reflect"
 
 func main() {
-  basicGrammer.ReflectDemo7()
+  reflect.ReflectDemo7()
 }
 
 

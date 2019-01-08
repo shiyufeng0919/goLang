@@ -1,4 +1,4 @@
-package basicGrammer
+package basic
 
 /*
 第8章 包(package)

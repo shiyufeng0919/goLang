@@ -1,4 +1,4 @@
-package basicGrammer
+package function
 
 import (
 	"fmt"

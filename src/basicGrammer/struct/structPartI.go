@@ -1,4 +1,4 @@
-package basicGrammer
+package _struct
 
 import (
 	"fmt"
