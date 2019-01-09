@@ -215,4 +215,157 @@ func ReflectDemo7(){
 
 /*
 10.2.4 反射对象的空和有效性判断
+
+IsNil:常被用于判断指针是否为空
+IsValid：常被用于判断返回值是否有效
 */
+func ReflectDemo8(){
+	//*int的空指针 初始值为nil
+	var a *int
+	fmt.Println("var a *int:",reflect.ValueOf(a).IsNil()) //true
+
+	//nil值
+	fmt.Println("nil:",reflect.ValueOf(nil).IsValid()) //false
+
+	//*int类型的空指针 ((*int)(nil):将nil转换为*int,即*int类型的空指针)
+	fmt.Println("(*int)(nil):",reflect.ValueOf((*int)(nil)).Elem().IsValid()) //false
+
+	//实例化一个结构体
+	s:= struct {
+
+	}{}
+
+	//尝试从结构体中查找一个不存在的字段 (空字段)
+	fmt.Println("不存在的结构体成员:",reflect.ValueOf(s).FieldByName("").IsValid()) //false
+
+	//尝试从结构体中查找一个不存在的方法
+	fmt.Println("不存在的方法:",reflect.ValueOf(s).MethodByName("").IsValid()) //false
+
+	//实例化一个map
+	m:=map[int]int{}
+
+	//尝试从map中查找一个不存在的键
+	fmt.Println("不存在的键:",reflect.ValueOf(m).MapIndex(reflect.ValueOf(3)).IsValid()) //false
+}
+
+/*
+10.2.5 使用反射值对象修改变量的值
+
+1.判断及获取元素的相关方法
+
+使用reflect.Value取元素，取地址及修改值的属性方法:
+
+Elem() Value
+Addr() Value
+CanAddr() bool
+CanSet() bool
+
+2.值修改相关方法
+
+使用reflect.Value修改值的相关方法
+SetInt(x int64)
+SetUint(x uint64)
+SetFloat(x float64)
+SetBool(x bool)
+SetBytes(x []byte)
+SetString(x string)
+
+3.值可被修改条件之一：可被寻址
+
+通过反射修改变量值的前提条件之一：这个值必须可以被寻址（即这个变量必须能被修改）
+
+注：reflect.Value的Addr()方法类似语言层的&操作，Elem()方法类似语言层的*操作。但这个方法与语言屋操作不等效
+*/
+func ReflectDemo9(){
+	var a int=1024
+	//获取变量a的反射值对象
+	valueOfA:=reflect.ValueOf(a) //传入的是a的值，而不是a的地址
+	//尝试将a修改为1(此时会发生崩溃)
+	valueOfA.SetInt(1) //SetInt()正在使用一个不能被寻址的值。
+}
+//修改值正确方法
+func ReflectDemo10(){
+	//正确方法
+	var b int =1024
+	//获取b的反射值对象(a的地址)
+	valueOfB:=reflect.ValueOf(&b) //valueOfB持有b的地址
+	//取出b地址的元素
+	valueOfB=valueOfB.Elem() //Elem取出b地址的元素.返回值类型reflect.Value
+	//修改b的值为1
+	valueOfB.SetInt(1)
+	//打印b的值
+	fmt.Println(valueOfB.Int()) //1
+}
+
+/*
+4.值可修改条件之一：被导出
+
+结构体成员中，若字段没有被导出，即便不使用反射也可被访问，但不能通过反射修改
+
+值的修改表面叫"可寻址"，即值必须"可被设置"。若想修改变量值，一般步骤：
+（1）取这个变量的地址/这个变量所在结构体已经是指针类型
+（2）使用reflect.ValueOf进行值包装
+（3）通过value.Elem()获得指针指向的元素值对象(Value)。因为值对象(Value)内部对象为指针时，使用set设置时会报出宕机错误
+（4）使用Value.set设置值
+*/
+func ReflectDemo11(){
+	type dog struct {
+		legCount int //注意此处首字母小写
+	}
+	//获取dog实例的反射值对象
+	valueOfDog:=reflect.ValueOf(dog{})
+	//获取legCount字段的值
+	vLegCount:=valueOfDog.FieldByName("legCount")
+	//尝试设置legCount的值（这里会发生崩溃）
+	vLegCount.SetInt(4) //报错原因：SetInt使用的值来自于一个未导出的字段
+}
+//正确写法
+func ReflectDemo12()  {
+	type dog struct {
+		LegCount int //注意首字母大写,导出该字段
+	}
+	//获取dog实例地址的反射值对象
+	valueOfDog:=reflect.ValueOf(&dog{}) //地址
+	//取出dog实例地址的元素
+	valueOfDog=valueOfDog.Elem()
+	//获取LegCount字段的值
+	vLegCount:=valueOfDog.FieldByName("LegCount")
+	//尝试设置LegCount的值
+	vLegCount.SetInt(4)
+	fmt.Println(vLegCount.Int()) //4
+}
+
+/*
+10.2.6 通过类型创建类型的实例
+*/
+func ReflectDemo13(){
+	var a int
+	//取变量a的反射类型对象
+	typeOfA:=reflect.TypeOf(a)
+	//根据反射类型对象创建类型实例
+	aIns:=reflect.New(typeOfA)
+	//输出Value的类型和种类
+	fmt.Println(aIns.Type(),aIns.Kind()) //*int ptr
+}
+
+/*
+10.2.7 使用反射调用函数
+*/
+func add(a,b int) int{
+	return a+b
+}
+//不建议大量使用反射函数调用
+func ReflectDemo14(){
+	//将add函数包装为反射值对象
+	funcValue:=reflect.ValueOf(add)
+
+	//构造函数参数，传入两个整型值
+	paramList:=[]reflect.Value{reflect.ValueOf(10),reflect.ValueOf(20)}
+
+	//反射调用函数
+	retList:=funcValue.Call(paramList)
+
+	//获取第一个返回值，取整数值
+	fmt.Println(retList[0].Int()) //30
+}
+
