@@ -3,7 +3,7 @@ package main
 import "golandProject/goLang/src/basicGrammer/reflect"
 
 func main() {
-  reflect.ReflectDemo14()
+  reflect.ReflectDemo15()
 }
 
 
