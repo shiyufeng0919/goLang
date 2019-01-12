@@ -114,4 +114,6 @@ www.graphviz.org
 runtime.pprof提供基础的运行分析的驱动
 
 $ go get github.com/pkg/profile ##对runtime.pprof技术上进行便利封装
+
+参见cpu.go
 */
