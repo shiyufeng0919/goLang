@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  "golandProject/goLang/src/basicGrammer/避坑与技巧"
+  "golandProject/goLang/src/basicGrammer/工作常用"
 )
 
 //模拟 go build命令
@@ -20,5 +20,8 @@ func main()  {
   //避坑与技巧.Demo1()
   //避坑与技巧.Demo2()
   //避坑与技巧.Demo7()
-  避坑与技巧.Demo8()
+  //避坑与技巧.Demo8()
+
+  //工作常用.JudgeIsEmptyDemo1()
+  工作常用.JudgeIsEmptyDemo2()
 }
