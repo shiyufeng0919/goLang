@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  "golandProject/goLang/src/web"
+  "golandProject/goLang/src/ginFramework"
 )
 
 //模拟 go build命令
@@ -17,5 +17,6 @@ func main1() {
 
 
 func main()  {
-  web.HttpWebDemo1()
+  //web.HttpWebDemo1()
+  ginFramework.AsyncDemo1()
 }
