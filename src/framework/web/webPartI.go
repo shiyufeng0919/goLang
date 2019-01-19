@@ -8,6 +8,9 @@ import (
 )
 
 /*
+
+原生web http.net
+
 ########一.web工作方式
 
 1。用户访问一个web站点过程
@@ -63,4 +66,6 @@ func HttpWebDemo1(){
 
 /*
 ########2.GO语言如何使用web工作
+########3.Go语言的http包详解
+Go语言http包两个核心功能：conn / ServeMux
 */

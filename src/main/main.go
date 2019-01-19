@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  "golandProject/goLang/src/ginFramework"
+  "golandProject/goLang/src/framework/ginFramework"
 )
 
 //模拟 go build命令
