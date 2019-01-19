@@ -11,9 +11,7 @@ import (
 )
 
 /*
-Gin框架使用
-
-Gin是一个轻巧而强大的golang web框架
+#####Gin框架使用:Gin是一个轻巧而强大的golang web框架
 */
 
 func RouterDemo1(){

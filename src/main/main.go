@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  "golandProject/goLang/src/framework/ginFramework"
+  "golandProject/goLang/src/framework/database"
 )
 
 //模拟 go build命令
@@ -18,5 +18,5 @@ func main1() {
 
 func main()  {
   //web.HttpWebDemo1()
-  ginFramework.AsyncDemo1()
+  database.JmoironSqlxDemo()
 }
