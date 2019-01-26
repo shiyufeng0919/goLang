@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  "golandProject/goLang/src/framework/database"
+  "golandProject/goLang/src/data/算法"
 )
 
 //模拟 go build命令
@@ -17,7 +17,5 @@ func main1() {
 
 
 func main()  {
-  //web.HttpWebDemo1()
-  //文本处理.ParseDemo()
-  database.LevelDB()
+  算法.AESDemo()
 }
