@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  "golandProject/goLang/src/data/文本处理"
+  "golandProject/goLang/src/framework/database"
 )
 
 //模拟 go build命令
@@ -18,5 +18,6 @@ func main1() {
 
 func main()  {
   //web.HttpWebDemo1()
-  文本处理.ParseDemo()
+  //文本处理.ParseDemo()
+  database.LevelDB()
 }
