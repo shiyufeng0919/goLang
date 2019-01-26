@@ -8,7 +8,7 @@ import (
 )
 
 /*
-###使用SQLite数据库:
+###使用SQLite数据库:（二进制文件。同leveldb）
 https://github.com/astaxie/build-web-application-with-golang/blob/master/zh/05.3.md
 
 ###SQLite菜鸟教程：http://www.runoob.com/sqlite/sqlite-attach-database.html
