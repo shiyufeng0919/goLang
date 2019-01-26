@@ -2,7 +2,7 @@ package main
 
 import (
   "fmt"
-  "golandProject/goLang/src/data/算法"
+  "golandProject/goLang/src/framework/database"
 )
 
 //模拟 go build命令
@@ -17,5 +17,5 @@ func main1() {
 
 
 func main()  {
-  算法.AESDemo()
+  database.SQLiteDemo()
 }
