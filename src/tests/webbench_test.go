@@ -44,3 +44,8 @@ func Benchmark_TimeConsumingFunction(b *testing.B) {
 我们执行命令go test -file webbench_test.go -test.bench=".*"，
 可以看到如下结果
  */
+
+/*
+benchmark:基准。
+<benchmark为劣   >benchmark为优
+*/
