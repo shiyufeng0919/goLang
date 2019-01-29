@@ -10,5 +10,5 @@ GO语言部署工具：Supervisord,upstart,daemontools (进程管理软件)
 */
 
 func main()  {
-  database.CouchDB()
+  database.MongoDB()
 }
