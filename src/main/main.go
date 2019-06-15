@@ -1,8 +1,6 @@
 package main
 
-import (
-  "golandProject/goLang/src/framework/database"
-)
+import "goLang/src/basicGrammer/工作常用"
 
 /*
 GO语言部署工具：Supervisord,upstart,daemontools (进程管理软件)
@@ -10,5 +8,5 @@ GO语言部署工具：Supervisord,upstart,daemontools (进程管理软件)
 */
 
 func main()  {
-  database.MongoDB()
+  工作常用.ExecStructJsonMapYaml()
 }

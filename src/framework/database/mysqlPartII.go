@@ -3,7 +3,6 @@ package database
 import (
 	"database/sql"
 	"github.com/jmoiron/sqlx"
-	"git.jd.com/baas/entnet/stellaragent/log"
 	"fmt"
 )
 
@@ -39,13 +38,13 @@ type Place struct {
 func JmoironSqlxDemo(){
 	db,err:=sqlx.Connect("mysql","root:shiyufeng@/mydb?charset=utf8")
 	if err !=nil{
-		log.Fatalln(err)
+		fmt.Println(err)
 	}
 
 	db.MustExec(schema)
 
 	tx:=db.MustBegin()
-	tx.MustExec("INSERT INTO person (first_name, last_name, email) VALUES ($1, $2, $3)","yufeng","kaixin","yufeng@jd.com")
+	tx.MustExec("INSERT INTO person (first_name, last_name, email) VALUES ($1, $2, $3)","yufeng","kaixin","yufeng@sina.com")
     tx.MustExec("INSERT INTO place (country, telcode) VALUES ($1, $2)","Beijing","010")
 
 	tx.MustExec("INSERT INTO person (first_name, last_name, email) VALUES (:first_name, :last_name, :email)")
